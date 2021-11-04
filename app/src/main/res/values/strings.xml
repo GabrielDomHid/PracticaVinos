@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">PracticaVinos</string>
+    <string name="bAñadir">Añadir</string>
+    <string name="bEditar">Editar</string>
+    <string name="estid">id</string>
+    <string name="bCrearVino">CREAR</string>
+    <string name="bCancelarVino">CANCELAR</string>
+    <string name="btback">CANCELAR</string>
+    <string name="tvId">ID</string>
+    <string name="tvNombre">Nombre</string>
+    <string name="tvBodega">Bodega</string>
+    <string name="tvColor">Color</string>
+    <string name="tvOrigen">Origen</string>
+    <string name="tvGraduacion">Graduación</string>
+    <string name="tvFecha">Fecha</string>
+    <string name="btDelete">BORRAR</string>
+    <string name="bEditarVino">MODIFICAR</string>
+
+    <string name="file_name">listaVinos.csv</string>
+    <string name="file_nameIds">listaId.txt</string>
+</resources>
