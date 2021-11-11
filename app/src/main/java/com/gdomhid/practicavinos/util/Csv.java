@@ -6,9 +6,8 @@ public class Csv {
 
     public static Vino getVino(String s){
         String[] atributos = s.split(";");
-        Vino v = null;
+        Vino v = new Vino();
         if (atributos.length >= 7){
-            new Vino();
             try {
                 v.setId(Long.parseLong(atributos[0].trim()));
             } catch(Exception e){}

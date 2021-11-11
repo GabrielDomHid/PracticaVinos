@@ -9,19 +9,23 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.gdomhid.practicavinos.util.Csv;
 import com.gdomhid.practicavinos.util.TrabajandoArchivos;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    public static ArrayList<Long> listaIdVinos = new ArrayList<Long>();
-    public List<String> listaDeIds = new ArrayList<>();
+    public static ArrayList<Vino> listaVinos = new ArrayList<>();
     private String nombreArchivo;
+    private TextView tvListaVinos,tvErrorId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,23 +35,49 @@ public class MainActivity extends AppCompatActivity {
 
     private void initialize() {
         nombreArchivo = getString(R.string.file_name);
+        //Si no existe el fichero lo creo
+        if (!readFile()) {
+            writeFileEmpty();
+        }else{
+            //Si existe el archivo lo leo y relleno el arraylist de vinos.
+            readFile();
+        }
         Button bAñadir = findViewById(R.id.bAñadir);
         bAñadir.setOnClickListener((View v) -> {
             openActivityAdd();
         });
+
         Button bEdit = findViewById(R.id.bEditar);
         bEdit.setOnClickListener((View v) -> {
-            openActivityEdit();
+            EditText edtId = findViewById(R.id.edtId);
+            String text = edtId.getText().toString();
+            tvErrorId = findViewById(R.id.tvErrorId);
+            if (text.equals("")) {
+                tvErrorId.setText("Este id no existe.");
+            }else{
+                boolean comprueba = AddVino.compruebaId(Long.parseLong(text),listaVinos);
+                if (comprueba) {
+                    tvErrorId.setText("");
+                    openActivityEdit();
+                }else {
+                    tvErrorId.setText("Este id no existe.");
+                }
+            }
         });
-        actualizaIds();
-        TextView tvListaVinos = findViewById(R.id.tvListaVinos);
-        tvListaVinos.setText(readInternoFile() +"\n Cantidad de id "+ listaIdVinos.size());
+        tvListaVinos = findViewById(R.id.tvListaVinos);
+        tvListaVinos.setText(readInternoFile());
     }
 
+    /**
+     * Inicializo la otra actividad
+     */
     private void openActivityAdd() {
         Intent intent = new Intent(this, AddVino.class);
         startActivity(intent);
     }
+    /**
+     * Inicializo la actividad de editar
+     */
     private void openActivityEdit() {
         Intent intent = new Intent(this, EditVino.class);
         EditText edtId = findViewById(R.id.edtId);
@@ -55,6 +85,9 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    /**
+     * Leo el fichero y lo muestro en el scrollview
+     */
     public String readFile(File file, String filename){
         File f = new File(file, filename);
         String texto = "";
@@ -71,31 +104,53 @@ public class MainActivity extends AppCompatActivity {
         return texto;
     }
 
+    /**
+     *Leo el archivo interno
+     */
     public String readInternoFile() {
         return readFile(getFilesDir(), nombreArchivo);
     }
 
-    public String readExternalFile() {
-        return readFile(getExternalFilesDir(null), nombreArchivo);
+    @Override
+    protected void onRestart() {
+        tvListaVinos = findViewById(R.id.tvListaVinos);
+        tvListaVinos.setText(readInternoFile());
+        readFile();
+        super.onRestart();
     }
 
-    public void readFileIds(){
-        File f = new File(getFilesDir(), getString(R.string.file_nameIds));
+    /**
+     * Creo un fichero interno automaticamente con el nombre que se declara al crear el activity
+     */
+    public void writeFileEmpty(){
+        File f = new File(getFilesDir(), nombreArchivo);
+        FileWriter fw = null; //FileWriter(File f,boolean append)
+        try {
+            fw = new FileWriter(f, true);
+            fw.write("");
+            fw.flush();
+            fw.close();
+        } catch (IOException e) {}
+    }
+    /**
+     * Leo automaticamente el fichero y convierto en objetos vino cada linea y lo añado al arraylist
+     * de vinos de la clase para trabjar con el.
+     * Se le podria añadir como parametro el file para seleccionar si interno o externo y el nombre
+     * del archivo pero para esta práctica he decidido hacerlo de esta forma.
+     */
+    public boolean readFile(){
+        File f = new File(getFilesDir(), nombreArchivo);
+        boolean readok = true;
         try {
             BufferedReader br = new BufferedReader(new FileReader(f));
             String linea;
-            while((linea = br.readLine()) != null) {
-                listaDeIds = new ArrayList<>(Arrays.asList(linea.split(";")));
+            while ((linea = br.readLine()) != null) {
+                listaVinos.add((Vino) Csv.getVino(linea));
             }
             br.close();
-        } catch (Exception e){}
-    }
-    public void actualizaIds(){
-        readFileIds();
-        if (listaDeIds.size() > 0) {
-            for (String ids : listaDeIds) {
-                listaIdVinos.add(Long.parseLong(ids));
-            }
+        } catch (Exception e){
+            readok = false;
         }
+        return readok;
     }
 }
